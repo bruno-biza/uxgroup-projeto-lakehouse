@@ -1,0 +1,46 @@
+# Portões locais do Fluxo de Desenvolvimento da constituição. Rodam antes do
+# commit; qualquer um reprovando bloqueia.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=512"]
+      # Princípio VIII: impede que um .env escape para o índice.
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+        files: ^(generator|ingestion|common|tests)/
+      - id: ruff-format
+        files: ^(generator|ingestion|common|tests)/
+
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 3.1.1
+    hooks:
+      - id: sqlfluff-lint
+        files: ^(dbt_bets/models|dbt_bets/tests|snowflake_setup)/.*\.sql$
+        additional_dependencies:
+          ["dbt-core>=1.8,<2", "dbt-snowflake>=1.8,<2", "sqlfluff-templater-dbt"]
+
+  - repo: local
+    hooks:
+      # Princípio VIII: nenhuma credencial no diff. Procura atribuição de valor
+      # às chaves sensíveis fora do .env.example.
+      - id: sem-segredos
+        name: nenhuma credencial no diff
+        entry: >-
+          bash -c 'if git diff --cached -U0 | grep -nE
+          "^\+.*(SNOWFLAKE_PASSWORD|SNOWFLAKE_USER|SNOWFLAKE_ACCOUNT)\s*=\s*\S+"
+          | grep -v "env.example"; then
+          echo "ERRO: credencial no diff"; exit 1; fi'
+        language: system
+        pass_filenames: false
