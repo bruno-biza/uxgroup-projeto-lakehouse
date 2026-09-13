@@ -1,0 +1,40 @@
+# Fim de linha fixo em LF, independente do sistema de quem clona.
+#
+# Por que existe: em Windows com `core.autocrlf=true`, o git converte os
+# arquivos para CRLF na cópia local. Para a maior parte do projeto isso é
+# inofensivo, mas quebra o que roda em Linux ou é interpretado por shell:
+# o `Makefile` passa a falhar com erros como `$'\r': command not found`, e os
+# arquivos montados nos contêineres do Airflow chegam com `\r` no fim de cada
+# linha. Atributos aqui têm precedência sobre o `core.autocrlf` da máquina, então
+# o comportamento deixa de depender de como o git de cada um está configurado.
+#
+# Não confundir com a garantia de determinismo do gerador (Princípio VI): os CSV
+# dos lotes são escritos em modo binário com `\n` explícito e nem são versionados.
+
+# Padrão: todo arquivo de texto em LF.
+* text=auto eol=lf
+
+# Explícitos, porque são os que efetivamente quebram com CRLF.
+Makefile        text eol=lf
+Dockerfile      text eol=lf
+*.sh            text eol=lf
+*.py            text eol=lf
+*.sql           text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+*.toml          text eol=lf
+
+# Scripts nativos do Windows exigem CRLF. Nenhum existe hoje; a regra evita que
+# um futuro .bat seja convertido para LF e pare de funcionar.
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# Binários: nunca converter.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.pdf           binary
+*.zip           binary
+*.gz            binary
+*.parquet       binary
