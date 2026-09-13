@@ -1,0 +1,48 @@
+# === Credenciais — Princípio VIII: nenhuma credencial versionada ===
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*credentials*.json
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# === dbt ===
+dbt_bets/target/
+dbt_bets/dbt_packages/
+dbt_bets/logs/
+dbt_bets/.user.yml
+
+# === Airflow ===
+airflow.db
+airflow-webserver.pid
+standalone_admin_password.txt
+logs/
+
+# === Dados ===
+# Os lotes sintéticos são reproduzíveis a partir da semente; nunca versionados.
+dados/
+*.parquet
+*.duckdb
+
+# === Sistema / editor ===
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+.vscode/
+.idea/

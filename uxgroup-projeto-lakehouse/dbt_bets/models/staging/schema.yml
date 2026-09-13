@@ -1,0 +1,119 @@
+version: 2
+
+models:
+  - name: stg_apostadores
+    description: Apostadores limpos, tipados e deduplicados. Nenhum dado pessoal real.
+    columns:
+      - name: apostador_id
+        description: Chave natural.
+        tests: [unique, not_null]
+      - name: criado_em
+        tests: [not_null]
+      - name: estado
+        description: Sigla de UF, domínio fechado.
+        tests: [not_null]
+      - name: atualizado_em
+        description: Marcador que define a versão canônica (FR-005a).
+        tests: [not_null]
+
+  - name: stg_eventos
+    description: Eventos esportivos limpos e tipados.
+    columns:
+      - name: evento_id
+        tests: [unique, not_null]
+      - name: esporte
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["futebol", "basquete", "tenis", "volei", "mma"]
+      - name: campeonato
+        tests: [not_null]
+      - name: data_evento
+        tests: [not_null]
+      - name: atualizado_em
+        tests: [not_null]
+
+  - name: stg_apostas
+    description: >
+      Apostas limpas, tipadas e deduplicadas. Somente a versão canônica e válida
+      de cada identificador. Registro inválido não está aqui — está na
+      quarentena (FR-011).
+    columns:
+      - name: aposta_id
+        tests: [unique, not_null]
+      - name: apostador_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_apostadores')
+              field: apostador_id
+      - name: evento_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_eventos')
+              field: evento_id
+      - name: data_aposta
+        tests: [not_null]
+      - name: valor_apostado
+        description: >
+          Sempre maior que zero; valores não positivos vão para a quarentena. A
+          verificação de faixa é o teste singular
+          assert_nenhum_invalido_em_fatos.sql — escrito à mão em vez de usar
+          dbt_utils para não acrescentar dependência externa (Princípio IX).
+        tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["ganha", "perdida", "pendente", "cancelada"]
+      - name: premio_pago
+        tests: [not_null]
+      - name: atualizado_em
+        tests: [not_null]
+
+  - name: stg_transacoes
+    description: Depósitos e saques limpos e tipados.
+    columns:
+      - name: transacao_id
+        tests: [unique, not_null]
+      - name: apostador_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_apostadores')
+              field: apostador_id
+      - name: data_transacao
+        tests: [not_null]
+      - name: tipo
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["deposito", "saque"]
+      - name: valor
+        tests: [not_null]
+
+  - name: qua_registros_rejeitados
+    description: >
+      União das quatro quarentenas. É o caminho de volta de um registro
+      descartado até a linha exata do CSV (FR-010, SC-004).
+    columns:
+      - name: entidade
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["apostadores", "eventos", "apostas", "transacoes"]
+      - name: registro_original
+        description: Registro de RAW inteiro, como chegou, em VARIANT.
+        tests: [not_null]
+      - name: motivos
+        description: >
+          Todos os motivos aplicáveis, não apenas o primeiro. Um registro que
+          viola várias regras aparece uma vez, com vários itens aqui.
+        tests: [not_null]
+      - name: arquivo_origem
+        tests: [not_null]
+      - name: linha_origem
+        tests: [not_null]
+      - name: lote_data
+        tests: [not_null]

@@ -1,0 +1,27 @@
+name: "bets"
+version: "1.0.0"
+config-version: 2
+
+profile: "bets"
+
+model-paths: ["models"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  # Data lógica do lote. Vem do `{{ ds }}` do Airflow como --vars; nunca do
+  # relógio (FR-003, Princípio IV). Vazio aqui de propósito: uma execução sem a
+  # variável deve ser visível, não silenciosamente "hoje".
+  lote_data: ""
+
+models:
+  bets:
+    staging:
+      +schema: STAGING
+      # Views: STAGING é transformação, não armazenamento. Materializar aqui
+      # dobraria o dado sem ganho num volume desta ordem.
+      +materialized: view
+    marts:
+      +schema: MARTS
+      +materialized: table

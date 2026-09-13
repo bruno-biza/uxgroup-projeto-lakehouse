@@ -1,0 +1,176 @@
+version: 2
+
+models:
+  - name: dim_eventos
+    description: Dimensão de eventos esportivos, com todo o histórico.
+    columns:
+      - name: evento_id
+        tests: [unique, not_null]
+      - name: esporte
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["futebol", "basquete", "tenis", "volei", "mma"]
+
+  - name: dim_apostadores
+    description: >
+      Dimensão de apostadores. Nenhum dado pessoal real (Princípio VI): sem
+      nome, documento, e-mail ou data de nascimento.
+    columns:
+      - name: apostador_id
+        tests: [unique, not_null]
+      - name: estado
+        tests: [not_null]
+
+  - name: fct_apostas
+    description: >
+      Uma linha por aposta, sempre no último status conhecido. O merge por
+      aposta_id implementa FR-019a: um lote posterior com status final substitui
+      a linha em vez de acrescentar outra.
+    columns:
+      - name: aposta_id
+        tests: [unique, not_null]
+      - name: apostador_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_apostadores')
+              field: apostador_id
+      - name: evento_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_eventos')
+              field: evento_id
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["ganha", "perdida", "pendente", "cancelada"]
+      - name: resultado_casa
+        description: >
+          valor_apostado - premio_pago. NULO quando a aposta não está resolvida:
+          zero afirmaria que a casa não ganhou nem perdeu, que é diferente de
+          ainda não se saber.
+
+  - name: fct_transacoes
+    description: Uma linha por transação, no último estado conhecido.
+    columns:
+      - name: transacao_id
+        tests: [unique, not_null]
+      - name: tipo
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["deposito", "saque"]
+
+  - name: agg_ggr_diario_esporte
+    description: >
+      GGR diário por esporte (US1).
+
+      INCLUI: apenas apostas válidas com status `ganha` ou `perdida`.
+
+      NÃO INCLUI: apostas `cancelada` (o valor é devolvido, não há receita) nem
+      `pendente` nas três colunas de receita — pendentes aparecem apenas em
+      `exposicao_pendente`. Não inclui nenhum registro em quarentena, nem custo
+      operacional, imposto ou bônus: GGR é receita bruta de jogo, não lucro.
+
+      NUNCA some `ggr` com `exposicao_pendente`: um é receita realizada, o outro
+      é dinheiro em risco ainda não resolvido.
+
+      VOLATILIDADE: o `ggr` de uma data passada MUDA quando uma aposta daquela
+      data sai de `pendente` (FR-019b). A tabela é a melhor leitura disponível,
+      não um fechamento contábil.
+    columns:
+      - name: data_aposta
+        description: >
+          Data em que a aposta foi feita, não a data do evento. A unicidade da
+          chave composta (data_aposta, esporte) é verificada pelo teste singular
+          assert_ggr_grao_unico.sql.
+        tests: [not_null]
+      - name: esporte
+        tests: [not_null]
+      - name: ggr
+        description: total_apostado - premios_pagos. Pode ser negativo.
+      - name: exposicao_pendente
+        description: >
+          Valor apostado em apostas ainda abertas. Leitura separada; nunca
+          somada ao GGR.
+
+  - name: agg_engajamento_diario
+    description: >
+      Engajamento diário (US3).
+
+      INCLUI: todas as apostas válidas, independentemente de status — é métrica
+      de atividade, não de receita, e o critério difere do GGR de propósito.
+
+      NÃO INCLUI: registros em quarentena; apostadores sem aposta na data;
+      acessos, sessões ou logins, que não existem no escopo.
+
+      ATENÇÃO: `volume_apostado` NÃO é comparável a `total_apostado` de
+      agg_ggr_diario_esporte, porque aquele exclui pendentes e canceladas e este
+      não. Comparar os dois sem essa ressalva é o erro de leitura mais provável
+      destas tabelas.
+    columns:
+      - name: data_aposta
+        tests: [unique, not_null]
+      - name: ticket_medio
+        description: NULO, nunca zero, quando não há aposta válida na data.
+      - name: apostadores_ativos
+        description: Contagem distinta; um apostador com várias apostas conta uma vez.
+        tests: [not_null]
+
+  - name: agg_financeiro_diario
+    description: >
+      Movimentação financeira diária (US4).
+
+      INCLUI: transações válidas de depósito e saque.
+
+      NÃO INCLUI: saldo de conta (não é modelado); estornos e chargebacks (fora
+      do escopo); qualquer relação com o GGR — dinheiro movimentado e receita de
+      jogo são grandezas distintas e não se reconciliam.
+    columns:
+      - name: data_transacao
+        tests: [unique, not_null]
+      - name: liquido
+        description: total_depositado - total_sacado. Pode ser negativo.
+
+  - name: agg_qualidade_lote
+    description: >
+      Resumo de qualidade por lote (US2).
+
+      A taxa é INFORMATIVA: nenhum valor dela, nem 100%, interrompe a execução
+      (FR-016a). O que bloqueia são os testes estruturais (FR-020).
+
+      Um registro com vários motivos aparece em várias linhas de motivo, mas
+      conta uma vez em `qtd_rejeitados_distintos` — que é a coluna usada no
+      invariante de SC-005.
+    columns:
+      - name: lote_data
+        tests: [not_null]
+      - name: entidade
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["apostadores", "eventos", "apostas", "transacoes"]
+      - name: motivo
+        description: >
+          Catálogo fechado de motivos de rejeição, mais o sentinela
+          `sem_rejeicao`, que marca entidade e lote sem nenhum descarte — um lote
+          limpo precisa ser visível no resumo, e ausência de linha seria
+          indistinguível de lote não processado.
+        tests:
+          - not_null
+          - accepted_values:
+              values:
+                - "duplicata"
+                - "nulo_obrigatorio"
+                - "valor_nao_positivo"
+                - "data_posterior_ao_evento"
+                - "apostador_inexistente"
+                - "evento_inexistente"
+                - "premio_inconsistente"
+                - "status_invalido"
+                - "sem_rejeicao"
+      - name: taxa_rejeicao
+        description: qtd_rejeitados_distintos / qtd_recebidos, por entidade e lote.

@@ -1,0 +1,17 @@
+# Princípio VIII: nenhum valor literal. Tudo vem do ambiente, e `env_var` sem
+# default faz o dbt falhar nomeando a variável ausente — que é o
+# comportamento desejado. Um default silencioso conectaria no lugar errado.
+bets:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: "{{ env_var('SNOWFLAKE_ROLE') }}"
+      warehouse: "{{ env_var('SNOWFLAKE_WAREHOUSE') }}"
+      database: "{{ env_var('SNOWFLAKE_DATABASE') }}"
+      schema: STAGING
+      threads: 4
+      client_session_keep_alive: false

@@ -1,0 +1,23 @@
+version: 2
+
+sources:
+  - name: raw
+    database: BETS
+    schema: RAW
+    description: >
+      Camada bruta. Todas as colunas de negócio são VARCHAR por desenho, não por
+      descuido: RAW preserva o registro como chegou (FR-004), e sem conversão de
+      tipo não existe conversão que falhe na carga. É o que permite que uma
+      aposta com valor negativo ou data impossível chegue intacta à quarentena.
+    tables:
+      - name: raw_apostadores
+        description: Cadastro de apostadores como veio do CSV do lote.
+      - name: raw_eventos
+        description: Eventos esportivos como vieram do CSV do lote.
+      - name: raw_apostas
+        description: >
+          Apostas como vieram do CSV, incluindo as duplicatas. A contagem de
+          linhas aqui é maior que o volume pedido ao gerador porque cada
+          duplicata injetada é uma linha adicional.
+      - name: raw_transacoes
+        description: Depósitos e saques como vieram do CSV do lote.

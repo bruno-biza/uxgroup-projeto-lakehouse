@@ -1,0 +1,66 @@
+[project]
+name = "bets-lakehouse"
+version = "0.1.0"
+description = "Plataforma analítica de apostas esportivas sobre dados sintéticos no Snowflake"
+requires-python = ">=3.11,<3.13"
+
+dependencies = [
+    "faker>=25,<31",
+    "snowflake-connector-python>=3.12,<4",
+]
+
+[project.optional-dependencies]
+# Airflow e dbt rodam dentro dos contêineres (ver airflow/Dockerfile). Ficam como
+# extras para não travar a resolução de dependências do ambiente local.
+transform = [
+    "dbt-core>=1.8,<2",
+    "dbt-snowflake>=1.8,<2",
+]
+orchestration = [
+    "apache-airflow>=2.9,<3",
+]
+dev = [
+    "pytest>=8.2,<9",
+    "pytest-cov>=5.0,<6",
+    "ruff>=0.5,<1",
+    "sqlfluff>=3.0,<4",
+    "pre-commit>=3.7,<4",
+]
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["generator*", "ingestion*", "common*", "snowflake_setup*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "requires_snowflake: exige credenciais reais do Snowflake; excluído da suíte padrão",
+]
+addopts = "-q --strict-markers -m 'not requires_snowflake'"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ANN", "T20"]
+# T20 proíbe print: é a checagem em linter da observabilidade mínima exigida pela
+# constituição — código de pipeline emite log estruturado, nunca print solto.
+ignore = ["ANN401"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN"]
+# As CLIs são a fronteira com o operador humano e escrevem o JSON de resultado em
+# stdout por contrato (ver specs/.../contracts/cli.md).
+"generator/cli.py" = ["T20"]
+"ingestion/cli.py" = ["T20"]
+
+[tool.sqlfluff.core]
+dialect = "snowflake"
+templater = "jinja"
+max_line_length = 100
+exclude_rules = "RF01,ST06"
