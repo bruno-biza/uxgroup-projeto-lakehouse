@@ -23,7 +23,7 @@ select
     -- Pode ser negativo, e nao ha truncamento em zero: um dia em que os premios
     -- superam o arrecadado e um prejuizo real, nao um zero.
     coalesce(sum(case when status in ('ganha', 'perdida') then valor_apostado end), 0)
-        - coalesce(sum(case when status in ('ganha', 'perdida') then premio_pago end), 0)
+    - coalesce(sum(case when status in ('ganha', 'perdida') then premio_pago end), 0)
         as ggr,
 
     -- Leitura separada, nunca somada ao GGR.

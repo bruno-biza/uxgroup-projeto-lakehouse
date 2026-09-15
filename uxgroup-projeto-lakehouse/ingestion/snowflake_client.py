@@ -17,6 +17,7 @@ quarentena em STAGING. Abortar na primeira é o comportamento correto.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -141,8 +142,30 @@ class ClienteSnowflake:
         """
         caminho = arquivo.resolve().as_posix()
         self.executar(
-            f"PUT 'file://{caminho}' '@{STAGE}/{lote_data}/' "
-            "OVERWRITE = TRUE AUTO_COMPRESS = FALSE"
+            f"PUT 'file://{caminho}' '@{STAGE}/{lote_data}/' OVERWRITE = TRUE AUTO_COMPRESS = FALSE"
+        )
+        self._aguardar_visibilidade_no_stage(arquivo.name, lote_data)
+
+    def _aguardar_visibilidade_no_stage(
+        self, arquivo: str, lote_data: str, tentativas: int = 5, espera_s: float = 0.5
+    ) -> None:
+        """Confirma no `LIST` que o arquivo já está visível antes do `COPY INTO`.
+
+        Mitiga uma janela de propagação rara entre `PUT` e `COPY INTO`
+        observada em produção: disparar o `COPY INTO` imediato demais depois
+        do `PUT` pode não encontrar o arquivo ainda, e um padrão de stage sem
+        correspondência não é erro para o `COPY INTO` — ele completa com
+        sucesso tendo carregado zero linhas, silenciosamente. Falhar alto e
+        claro aqui é melhor do que uma tabela RAW incompleta sem aviso.
+        """
+        caminho_stage = f"@{STAGE}/{lote_data}/{arquivo}"
+        for _ in range(tentativas):
+            if self.executar(f"LIST '{caminho_stage}'"):
+                return
+            time.sleep(espera_s)
+        raise RuntimeError(
+            f"arquivo {arquivo} não apareceu em {caminho_stage} após "
+            f"{tentativas} tentativas — carga abortada antes do COPY INTO"
         )
 
     def copiar_para_raw(self, tabela: str, arquivo: str, lote_data: str) -> int:

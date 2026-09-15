@@ -90,9 +90,7 @@ def injetar(lote: Lote, perfil: PerfilLote) -> tuple[Lote, dict[str, int]]:
         data_evento = data_evento_por_id.get(aposta.evento_id)
         if data_evento is None:
             continue
-        apostas[i] = replace(
-            aposta, data_aposta=data_evento + timedelta(days=rng.randint(1, 5))
-        )
+        apostas[i] = replace(aposta, data_aposta=data_evento + timedelta(days=rng.randint(1, 5)))
 
     # --- Duplicata divergente ----------------------------------------------
     # Linhas ADICIONAIS com o mesmo aposta_id e atualizado_em mais recente. É o

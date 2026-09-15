@@ -14,6 +14,16 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Fora do Docker (docker-compose usa `env_file: .env`), nada carrega o `.env`
+# — nem o Makefile, nem pytest, nem uma CLI chamada à mão. Como todo caminho
+# Python do projeto passa por este módulo antes de tocar em credencial, o
+# carregamento entra aqui uma única vez, no import. `override=False` para que
+# uma variável já exportada no shell continue vencendo o arquivo.
+load_dotenv(Path(__file__).resolve().parent.parent / ".env", override=False)
 
 # Variáveis exigidas pelo contrato da CLI de ingestão
 # (specs/002-betting-analytics-platform/contracts/cli.md).

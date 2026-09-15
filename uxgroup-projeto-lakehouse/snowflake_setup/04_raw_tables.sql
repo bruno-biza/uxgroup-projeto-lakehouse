@@ -16,55 +16,55 @@
 --   lote_data                     -> chave de substituicao por lote (decisao D1)
 
 CREATE TABLE IF NOT EXISTS BETS.RAW.RAW_APOSTADORES (
-    apostador_id    VARCHAR,
-    criado_em       VARCHAR,
-    estado          VARCHAR,
-    atualizado_em   VARCHAR,
-    arquivo_origem  VARCHAR,
-    linha_origem    NUMBER,
-    carregado_em    TIMESTAMP_NTZ,
-    lote_data       DATE
+    APOSTADOR_ID VARCHAR,
+    CRIADO_EM VARCHAR,
+    ESTADO VARCHAR,
+    ATUALIZADO_EM VARCHAR,
+    ARQUIVO_ORIGEM VARCHAR,
+    LINHA_ORIGEM NUMBER,
+    CARREGADO_EM TIMESTAMP_NTZ,
+    LOTE_DATA DATE
 );
 
 CREATE TABLE IF NOT EXISTS BETS.RAW.RAW_EVENTOS (
-    evento_id       VARCHAR,
-    esporte         VARCHAR,
-    campeonato      VARCHAR,
-    time_casa       VARCHAR,
-    time_visitante  VARCHAR,
-    data_evento     VARCHAR,
-    atualizado_em   VARCHAR,
-    arquivo_origem  VARCHAR,
-    linha_origem    NUMBER,
-    carregado_em    TIMESTAMP_NTZ,
-    lote_data       DATE
+    EVENTO_ID VARCHAR,
+    ESPORTE VARCHAR,
+    CAMPEONATO VARCHAR,
+    TIME_CASA VARCHAR,
+    TIME_VISITANTE VARCHAR,
+    DATA_EVENTO VARCHAR,
+    ATUALIZADO_EM VARCHAR,
+    ARQUIVO_ORIGEM VARCHAR,
+    LINHA_ORIGEM NUMBER,
+    CARREGADO_EM TIMESTAMP_NTZ,
+    LOTE_DATA DATE
 );
 
 CREATE TABLE IF NOT EXISTS BETS.RAW.RAW_APOSTAS (
-    aposta_id       VARCHAR,
-    apostador_id    VARCHAR,
-    evento_id       VARCHAR,
-    data_aposta     VARCHAR,
-    valor_apostado  VARCHAR,
-    odd             VARCHAR,
-    status          VARCHAR,
-    premio_pago     VARCHAR,
-    atualizado_em   VARCHAR,
-    arquivo_origem  VARCHAR,
-    linha_origem    NUMBER,
-    carregado_em    TIMESTAMP_NTZ,
-    lote_data       DATE
+    APOSTA_ID VARCHAR,
+    APOSTADOR_ID VARCHAR,
+    EVENTO_ID VARCHAR,
+    DATA_APOSTA VARCHAR,
+    VALOR_APOSTADO VARCHAR,
+    ODD VARCHAR,
+    STATUS VARCHAR,
+    PREMIO_PAGO VARCHAR,
+    ATUALIZADO_EM VARCHAR,
+    ARQUIVO_ORIGEM VARCHAR,
+    LINHA_ORIGEM NUMBER,
+    CARREGADO_EM TIMESTAMP_NTZ,
+    LOTE_DATA DATE
 );
 
 CREATE TABLE IF NOT EXISTS BETS.RAW.RAW_TRANSACOES (
-    transacao_id    VARCHAR,
-    apostador_id    VARCHAR,
-    data_transacao  VARCHAR,
-    tipo            VARCHAR,
-    valor           VARCHAR,
-    atualizado_em   VARCHAR,
-    arquivo_origem  VARCHAR,
-    linha_origem    NUMBER,
-    carregado_em    TIMESTAMP_NTZ,
-    lote_data       DATE
+    TRANSACAO_ID VARCHAR,
+    APOSTADOR_ID VARCHAR,
+    DATA_TRANSACAO VARCHAR,
+    TIPO VARCHAR,
+    VALOR VARCHAR,
+    ATUALIZADO_EM VARCHAR,
+    ARQUIVO_ORIGEM VARCHAR,
+    LINHA_ORIGEM NUMBER,
+    CARREGADO_EM TIMESTAMP_NTZ,
+    LOTE_DATA DATE
 );

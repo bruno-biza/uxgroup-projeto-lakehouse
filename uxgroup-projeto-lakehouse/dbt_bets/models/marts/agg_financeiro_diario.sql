@@ -9,7 +9,7 @@ select
     coalesce(sum(case when tipo = 'saque' then valor end), 0) as total_sacado,
     -- Pode ser negativo: dia em que saiu mais do que entrou.
     coalesce(sum(case when tipo = 'deposito' then valor end), 0)
-        - coalesce(sum(case when tipo = 'saque' then valor end), 0) as liquido,
+    - coalesce(sum(case when tipo = 'saque' then valor end), 0) as liquido,
     count(case when tipo = 'deposito' then 1 end) as qtd_depositos,
     count(case when tipo = 'saque' then 1 end) as qtd_saques
 from {{ ref('fct_transacoes') }}

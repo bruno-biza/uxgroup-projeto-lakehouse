@@ -1,6 +1,8 @@
 -- FR-014: apostador com varias apostas no dia conta uma vez.
 with esperado as (
-    select data_aposta, count(distinct apostador_id) as ativos
+    select
+        data_aposta,
+        count(distinct apostador_id) as ativos
     from {{ ref('fct_apostas') }}
     group by data_aposta
 )

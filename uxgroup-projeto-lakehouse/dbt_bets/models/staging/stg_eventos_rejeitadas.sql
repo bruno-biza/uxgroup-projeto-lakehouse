@@ -14,8 +14,8 @@
 -- valor e gravado na construcao e significa o instante da execucao que
 -- classificou o registro.
 select
-    'eventos'            as entidade,
-    evento_id            as chave_natural,
+    'eventos' as entidade,
+    evento_id as chave_natural,
     registro_original,
     motivos,
     arquivo_origem,

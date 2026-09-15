@@ -22,6 +22,10 @@ from pathlib import Path
 
 import pytest
 
+# Importar common.config já carrega o .env (ver o módulo) — os subprocessos
+# abertos abaixo (dbt, generator.cli, ingestion.cli) herdam esse os.environ,
+# então isso também resolve o caminho do dbt quando os testes de integração
+# o invocam.
 from common.config import VARIAVEIS_SNOWFLAKE, carregar_config_snowflake
 
 RAIZ = Path(__file__).resolve().parents[1]
@@ -64,10 +68,15 @@ def _rodar(comando: list[str], cwd: Path | None = None) -> subprocess.CompletedP
 def gerar_lote(destino: Path, data: str, volume: int = 2000, **taxas: float) -> None:
     """Roda a CLI do gerador como o Airflow rodaria."""
     comando = [
-        sys.executable, "-m", "generator.cli",
-        "--data-lote", data,
-        "--volume", str(volume),
-        "--saida", str(destino),
+        sys.executable,
+        "-m",
+        "generator.cli",
+        "--data-lote",
+        data,
+        "--volume",
+        str(volume),
+        "--saida",
+        str(destino),
     ]
     for nome, valor in taxas.items():
         comando += [f"--{nome.replace('_', '-')}", str(valor)]

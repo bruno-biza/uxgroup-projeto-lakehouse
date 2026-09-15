@@ -5,11 +5,11 @@
 with tipado as (
 
     select
-        nullif(trim(transacao_id), '')      as transacao_id,
-        nullif(trim(apostador_id), '')      as apostador_id,
-        try_to_date(data_transacao)         as data_transacao,
-        nullif(trim(tipo), '')              as tipo,
-        try_to_number(valor, 12, 2)         as valor,
+        nullif(trim(transacao_id), '') as transacao_id,
+        nullif(trim(apostador_id), '') as apostador_id,
+        try_to_date(data_transacao) as data_transacao,
+        nullif(trim(tipo), '') as tipo,
+        try_to_number(valor, 12, 2) as valor,
         try_to_timestamp_ntz(atualizado_em) as atualizado_em,
         arquivo_origem,
         linha_origem,
@@ -21,7 +21,7 @@ with tipado as (
             'tipo', tipo,
             'valor', valor,
             'atualizado_em', atualizado_em
-        )                                   as registro_original
+        ) as registro_original
     from {{ source('raw', 'raw_transacoes') }}
 
 ),
@@ -61,17 +61,20 @@ motivado as (
         array_compact(array_construct(
             case when versao > 1 then 'duplicata' end,
             case
-                when transacao_id is null or apostador_id is null
-                     or data_transacao is null or tipo is null or valor is null
-                     or atualizado_em is null
-                then 'nulo_obrigatorio'
+                when
+                    transacao_id is null or apostador_id is null
+                    or data_transacao is null or tipo is null or valor is null
+                    or atualizado_em is null
+                    then 'nulo_obrigatorio'
             end,
             case when valor <= 0 then 'valor_nao_positivo' end,
-            case when apostador_id is not null and not apostador_existe
-                 then 'apostador_inexistente' end,
+            case
+                when apostador_id is not null and not apostador_existe
+                    then 'apostador_inexistente'
+            end,
             case
                 when tipo is not null and tipo not in ('deposito', 'saque')
-                then 'status_invalido'
+                    then 'status_invalido'
             end
         )) as motivos
     from avaliado

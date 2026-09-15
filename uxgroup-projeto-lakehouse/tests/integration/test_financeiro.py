@@ -16,7 +16,8 @@ from tests.conftest import escalar, pipeline_completo
 
 pytestmark = pytest.mark.requires_snowflake
 
-DATA = "2026-09-10"
+# Data exclusiva deste arquivo (ver test_carga_raw_idempotente.py).
+DATA = "2026-02-02"
 
 
 @pytest.fixture
@@ -41,9 +42,7 @@ def test_liquido_confere_com_calculo_independente(lote) -> None:
 def test_existe_dia_com_liquido_negativo(lote) -> None:
     """O gerador usa faixa de saque maior que a de depósito exatamente para que
     este cenário ocorra e possa ser verificado."""
-    negativos = escalar(
-        lote, "select count(*) from marts.agg_financeiro_diario where liquido < 0"
-    )
+    negativos = escalar(lote, "select count(*) from marts.agg_financeiro_diario where liquido < 0")
     assert negativos > 0, (
         "nenhum dia com líquido negativo — o cenário de saída maior que entrada "
         "não está sendo exercitado"
@@ -70,7 +69,5 @@ def test_contagens_por_tipo_somam_o_total(lote) -> None:
 
 def test_transacao_nao_duplica_no_fato(lote) -> None:
     linhas = escalar(lote, "select count(*) from marts.fct_transacoes")
-    distintas = escalar(
-        lote, "select count(distinct transacao_id) from marts.fct_transacoes"
-    )
+    distintas = escalar(lote, "select count(distinct transacao_id) from marts.fct_transacoes")
     assert linhas == distintas

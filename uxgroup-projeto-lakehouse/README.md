@@ -104,6 +104,17 @@ make run-local DATA=2026-09-10 VOLUME=50000
 Outros alvos: `make test` (suíte padrão e lint), `make test-integracao` (testes que exigem
 credenciais reais), `make down`, `make clean`, `make ajuda`.
 
+### Painel de métricas (opcional)
+
+Um painel Streamlit, somente leitura, sobre as tabelas de `MARTS` — GGR por esporte, engajamento,
+financeiro e qualidade do lote. Fora do escopo obrigatório: nenhum critério de sucesso depende
+dele.
+
+```bash
+pip install -e ".[dashboard]"   # uma vez
+make dashboard                  # abre em http://localhost:8501
+```
+
 ## As quatro perguntas que o projeto responde
 
 ```sql

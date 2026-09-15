@@ -32,8 +32,9 @@ from __future__ import annotations
 import os
 from datetime import datetime, timedelta
 
-from airflow import DAG
 from airflow.operators.bash import BashOperator
+
+from airflow import DAG
 
 PROJETO = "/opt/projeto"
 DBT = "/opt/dbt-venv/bin/dbt"
@@ -77,14 +78,26 @@ with DAG(
     gerar_lote = BashOperator(
         task_id="gerar_lote",
         bash_command=(
-            f"cd {PROJETO} && python -m generator.cli "
+            f"cd {PROJETO} && "
+            'DIA_ANTERIOR="{{ macros.ds_add(ds, -1) }}" && '
+            f'ARQ_ANTERIOR="{DIR_LOTES}/$DIA_ANTERIOR/apostas_$DIA_ANTERIOR.csv" && '
+            'if [ -f "$ARQ_ANTERIOR" ]; then '
+            'RESOLVER="--resolver-pendentes-de $DIA_ANTERIOR"; else RESOLVER=""; fi && '
+            "python -m generator.cli "
             "--data-lote {{ ds }} "
             f"--volume {volume} "
             f"--saida {DIR_LOTES} "
             f"--taxa-nulos {taxa_nulos} "
-            f"--taxa-valor-invalido {taxa_valor}"
+            f"--taxa-valor-invalido {taxa_valor} "
+            "$RESOLVER"
         ),
-        doc_md="Gera o lote sintético do dia com semente fixa (Princípio VI).",
+        doc_md=(
+            "Gera o lote sintético do dia com semente fixa (Princípio VI). "
+            "Resolve automaticamente as pendências do dia anterior quando o "
+            "lote anterior já existe em disco (FR-019a/b) — o teste em bash "
+            "evita quebrar a primeira execução de uma data nova, que não "
+            "tem lote anterior para resolver."
+        ),
     )
 
     carregar_raw = BashOperator(
@@ -105,7 +118,7 @@ with DAG(
         bash_command=(
             f"cd {DIR_DBT} && {DBT} run --fail-fast "
             "--select staging "
-            "--vars '{\"lote_data\": \"{{ ds }}\"}'"
+            '--vars \'{"lote_data": "{{ ds }}"}\''
         ),
         doc_md="Limpa, tipa, deduplica e separa os inválidos na quarentena.",
     )
@@ -115,7 +128,7 @@ with DAG(
         bash_command=(
             f"cd {DIR_DBT} && {DBT} test "
             "--select staging "
-            "--vars '{\"lote_data\": \"{{ ds }}\"}'"
+            '--vars \'{"lote_data": "{{ ds }}"}\''
         ),
         doc_md=(
             "Portão do Princípio V: falha aqui aborta a DAG e dbt_run_marts "
@@ -128,7 +141,7 @@ with DAG(
         bash_command=(
             f"cd {DIR_DBT} && {DBT} run --fail-fast "
             "--select marts "
-            "--vars '{\"lote_data\": \"{{ ds }}\"}'"
+            '--vars \'{"lote_data": "{{ ds }}"}\''
         ),
         doc_md="Dimensões, fatos incrementais e os quatro agregados diários.",
     )
@@ -136,13 +149,9 @@ with DAG(
     dbt_test_marts = BashOperator(
         task_id="dbt_test_marts",
         bash_command=(
-            f"cd {DIR_DBT} && {DBT} test "
-            "--select marts "
-            "--vars '{\"lote_data\": \"{{ ds }}\"}'"
+            f'cd {DIR_DBT} && {DBT} test --select marts --vars \'{{"lote_data": "{{{{ ds }}}}"}}\''
         ),
-        doc_md=(
-            "Testes de chave, de domínio e de sanidade de negócio das métricas."
-        ),
+        doc_md=("Testes de chave, de domínio e de sanidade de negócio das métricas."),
     )
 
     (

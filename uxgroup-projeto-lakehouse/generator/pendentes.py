@@ -55,8 +55,7 @@ def _ler_pendentes(caminho: Path) -> list[dict[str, str]]:
     return [
         linha
         for linha in linhas
-        if linha.get("status") == "pendente"
-        and all(linha.get(campo) for campo in obrigatorios)
+        if linha.get("status") == "pendente" and all(linha.get(campo) for campo in obrigatorios)
     ]
 
 

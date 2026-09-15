@@ -87,9 +87,7 @@ def executar(argv: list[str] | None = None) -> int:
         return 2
 
     try:
-        with log.cronometrar(
-            "lote_gerado", lote_data=perfil.data_lote, seed=perfil.seed
-        ) as ev:
+        with log.cronometrar("lote_gerado", lote_data=perfil.data_lote, seed=perfil.seed) as ev:
             lote = gerar_lote_valido(perfil)
             lote, defeitos = injetar(lote, perfil)
 
@@ -118,9 +116,7 @@ def executar(argv: list[str] | None = None) -> int:
             ev["linhas"] = {ent: dados["linhas"] for ent, dados in arquivos.items()}
             ev["linhas_escritas"] = sum(dados["linhas"] for dados in arquivos.values())
             ev["defeitos"] = defeitos
-            ev["checksums"] = {
-                dados["arquivo"]: dados["checksum"] for dados in arquivos.values()
-            }
+            ev["checksums"] = {dados["arquivo"]: dados["checksum"] for dados in arquivos.values()}
             ev["destino"] = str(args.saida / perfil.data_lote.isoformat())
     except LoteAnteriorAusenteError as exc:
         print(f"erro: {exc}", file=sys.stderr)

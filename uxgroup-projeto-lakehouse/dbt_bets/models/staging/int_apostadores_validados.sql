@@ -11,9 +11,9 @@
 with tipado as (
 
     select
-        nullif(trim(apostador_id), '')      as apostador_id,
-        try_to_date(criado_em)              as criado_em,
-        nullif(trim(estado), '')            as estado,
+        nullif(trim(apostador_id), '') as apostador_id,
+        try_to_date(criado_em) as criado_em,
+        nullif(trim(estado), '') as estado,
         try_to_timestamp_ntz(atualizado_em) as atualizado_em,
         arquivo_origem,
         linha_origem,
@@ -23,7 +23,7 @@ with tipado as (
             'criado_em', criado_em,
             'estado', estado,
             'atualizado_em', atualizado_em
-        )                                   as registro_original
+        ) as registro_original
     from {{ source('raw', 'raw_apostadores') }}
 
 ),
@@ -57,9 +57,10 @@ motivado as (
         array_compact(array_construct(
             case when versao > 1 then 'duplicata' end,
             case
-                when apostador_id is null or criado_em is null or estado is null
-                     or atualizado_em is null
-                then 'nulo_obrigatorio'
+                when
+                    apostador_id is null or criado_em is null or estado is null
+                    or atualizado_em is null
+                    then 'nulo_obrigatorio'
             end
         )) as motivos
     from avaliado

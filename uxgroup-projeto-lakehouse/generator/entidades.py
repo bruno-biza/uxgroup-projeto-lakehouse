@@ -91,9 +91,7 @@ def _instante(rng: random.Random, dia: date) -> datetime:
     Tudo no pipeline é UTC (decisão D7): elimina o caso de borda da fronteira de
     dia por construção, em vez de resolvê-lo com regra documentada.
     """
-    return datetime.combine(dia, datetime.min.time()) + timedelta(
-        seconds=rng.randrange(0, 86_400)
-    )
+    return datetime.combine(dia, datetime.min.time()) + timedelta(seconds=rng.randrange(0, 86_400))
 
 
 def _sortear_status(rng: random.Random) -> str:
@@ -255,6 +253,4 @@ def gerar_lote_valido(perfil: PerfilLote) -> Lote:
     apostas = gerar_apostas(perfil, eventos, apostadores, rng)
     transacoes = gerar_transacoes(perfil, apostadores, rng)
 
-    return Lote(
-        apostadores=apostadores, eventos=eventos, apostas=apostas, transacoes=transacoes
-    )
+    return Lote(apostadores=apostadores, eventos=eventos, apostas=apostas, transacoes=transacoes)

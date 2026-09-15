@@ -15,7 +15,8 @@ from tests.conftest import escalar, pipeline_completo
 
 pytestmark = pytest.mark.requires_snowflake
 
-DATA = "2026-09-10"
+# Data exclusiva deste arquivo (ver test_carga_raw_idempotente.py).
+DATA = "2026-02-03"
 
 # Campos comparados antes e depois. Cobrem contagem (duplicação) e soma (valor
 # alterado) em cada camada — contar sozinho não pegaria uma linha substituída
@@ -28,9 +29,7 @@ SONDAS = {
     "fct_distintas": "select count(distinct aposta_id) from marts.fct_apostas",
     "ggr_linhas": "select count(*) from marts.agg_ggr_diario_esporte",
     "ggr_soma": "select coalesce(sum(ggr), 0) from marts.agg_ggr_diario_esporte",
-    "exposicao": (
-        "select coalesce(sum(exposicao_pendente), 0) from marts.agg_ggr_diario_esporte"
-    ),
+    "exposicao": ("select coalesce(sum(exposicao_pendente), 0) from marts.agg_ggr_diario_esporte"),
     "volume": "select coalesce(sum(volume_apostado), 0) from marts.agg_engajamento_diario",
     "ativos": "select coalesce(sum(apostadores_ativos), 0) from marts.agg_engajamento_diario",
     "liquido": "select coalesce(sum(liquido), 0) from marts.agg_financeiro_diario",
@@ -75,9 +74,7 @@ def test_ggr_confere_com_calculo_independente(cliente, tmp_path: Path) -> None:
     próprio teste.
     """
     pipeline_completo(tmp_path, DATA, volume=2000)
-    do_agregado = escalar(
-        cliente, "select coalesce(sum(ggr), 0) from marts.agg_ggr_diario_esporte"
-    )
+    do_agregado = escalar(cliente, "select coalesce(sum(ggr), 0) from marts.agg_ggr_diario_esporte")
     recalculado = escalar(
         cliente,
         """

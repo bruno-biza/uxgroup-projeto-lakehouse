@@ -106,8 +106,7 @@ def _linhas(registros: list[Any], colunas: tuple[str, ...]) -> list[str]:
     chave natural deixaria a posição relativa indefinida.
     """
     tuplas = [
-        tuple(formatar(coluna, getattr(reg, coluna)) for coluna in colunas)
-        for reg in registros
+        tuple(formatar(coluna, getattr(reg, coluna)) for coluna in colunas) for reg in registros
     ]
     tuplas.sort()
     return [",".join(_escapar(campo) for campo in tupla) for tupla in tuplas]

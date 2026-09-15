@@ -11,20 +11,27 @@ where valor_apostado <= 0
 
 union all
 
-select aposta_id, 'premio_negativo'
+select
+    aposta_id,
+    'premio_negativo' as violacao
 from {{ ref('fct_apostas') }}
 where premio_pago < 0
 
 union all
 
-select aposta_id, 'chave_nula'
+select
+    aposta_id,
+    'chave_nula' as violacao
 from {{ ref('fct_apostas') }}
-where aposta_id is null or apostador_id is null or evento_id is null
-   or data_aposta is null or status is null
+where
+    aposta_id is null or apostador_id is null or evento_id is null
+    or data_aposta is null or status is null
 
 union all
 
-select aposta_id, 'status_fora_do_dominio'
+select
+    aposta_id,
+    'status_fora_do_dominio' as violacao
 from {{ ref('fct_apostas') }}
 where status not in ('ganha', 'perdida', 'pendente', 'cancelada')
 
@@ -33,13 +40,17 @@ union all
 -- Premio pago em aposta que nao foi ganha e inconsistencia estrutural.
 -- Premio MAIOR que o valor apostado nao esta aqui de proposito: e o
 -- comportamento normal de uma aposta ganha com odd alta.
-select aposta_id, 'premio_em_status_indevido'
+select
+    aposta_id,
+    'premio_em_status_indevido' as violacao
 from {{ ref('fct_apostas') }}
 where status in ('perdida', 'pendente', 'cancelada') and premio_pago <> 0
 
 union all
 
-select f.aposta_id, 'data_posterior_ao_evento'
+select
+    f.aposta_id,
+    'data_posterior_ao_evento' as violacao
 from {{ ref('fct_apostas') }} as f
 inner join {{ ref('dim_eventos') }} as e on f.evento_id = e.evento_id
 where f.data_aposta > e.data_evento

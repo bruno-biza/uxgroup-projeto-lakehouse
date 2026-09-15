@@ -93,7 +93,7 @@ Feche com o invariante:
 
 ---
 
-## 7:00 – 8:30 · O portão que bloqueia de verdade
+## 7:00 – 8:30 · Sujeira extrema não derruba nada — e é por isso que é confiável
 
 Dispare uma execução com sujeira extrema:
 
@@ -104,17 +104,29 @@ docker compose exec -T airflow-scheduler airflow dags trigger pipeline_bets \
 
 > "Noventa por cento de nulos nos campos obrigatórios."
 
-Mostre `dbt_test_staging` em vermelho e `dbt_run_marts` sem executar.
+Mostre a DAG inteira verde, ponta a ponta — nenhuma tarefa vermelha.
 
-> "A DAG parou. MARTS continua mostrando os números do lote anterior, coerentes entre si. Um portão
-> que só avisa é um portão aberto."
+> "A execução termina com sucesso. Nada crashou, nada travou. Os 90% de lixo foram pra quarentena
+> antes de chegar em qualquer tabela testada — é por isso que não há nada pra quebrar aqui: um
+> registro com campo obrigatório nulo nunca entra em `stg_apostas`, então nenhum teste de
+> não-nulidade tem o que reprovar. A taxa de rejeição fica registrada em `agg_qualidade_lote`, mas
+> ela é informativa, nunca um bloqueio — isso é `FR-016a` funcionando como projetado, não um
+> limite do sistema."
 
-**O contraste, que é o que mostra que a regra foi pensada:**
+**O que bloqueia de verdade não é taxa — é teste estrutural**, e isso já aconteceu de verdade
+durante a construção deste projeto, não é encenação:
 
-> "Mas taxa alta de rejeição, sozinha, não bloqueia. Se 60% das apostas tiverem valor inválido, o
-> pipeline processa os 40% restantes e registra a taxa. A sujeira é esperada — ela é injetada de
-> propósito. O que bloqueia é teste estrutural: chave duplicada, nulo em chave, integridade
-> referencial quebrada."
+> "Rodar isso pela primeira vez contra o Snowflake real — o que fiz só esta semana — pegou dois
+> bugs genuínos que nenhum parse de SQL detectaria: apostas ficando órfãs de dimensão ao reprocessar
+> um lote com volume diferente, e testes de integração se contaminando entre si no mesmo warehouse.
+> Os dois foram pegos exatamente pelos testes estruturais — `relationships_fct_apostas_evento_id`
+> e as asserções de FR-019 — que abortaram a execução exatamente como `FR-020` exige. Estão
+> documentados no histórico e no ADR 0006."
+
+Se quiser mostrar um bloqueio ao vivo em vez de só narrar: tenha preparado, antes da demo, um commit
+`git stash` com uma quebra estrutural real (ex.: comentar uma coluna obrigatória em
+`stg_apostas.sql`), aplicar com `git stash pop`, rodar, mostrar vermelho, e `git checkout --` para
+reverter. Não improvise isso ao vivo sem ensaiar — é o tipo de passo que trava uma demo.
 
 ---
 

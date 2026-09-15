@@ -44,9 +44,7 @@ def test_status_final_e_premio_coerente(lote_dia_1: Path) -> None:
         if aposta.status == "perdida":
             assert aposta.premio_pago == 0.0
         else:
-            assert aposta.premio_pago == pytest.approx(
-                round(aposta.valor_apostado * aposta.odd, 2)
-            )
+            assert aposta.premio_pago == pytest.approx(round(aposta.valor_apostado * aposta.odd, 2))
 
 
 def test_data_da_aposta_permanece_a_original(lote_dia_1: Path) -> None:
@@ -63,9 +61,7 @@ def test_data_da_aposta_permanece_a_original(lote_dia_1: Path) -> None:
     """
     caminho = lote_dia_1 / DIA_1.isoformat() / f"apostas_{DIA_1.isoformat()}.csv"
     with open(caminho, encoding="utf-8", newline="") as fh:
-        origem = {
-            linha["aposta_id"]: linha["data_aposta"] for linha in csv.DictReader(fh)
-        }
+        origem = {linha["aposta_id"]: linha["data_aposta"] for linha in csv.DictReader(fh)}
     for aposta in resolver_pendentes(lote_dia_1, DIA_1, DIA_2, seed=42):
         assert aposta.data_aposta.isoformat() == origem[aposta.aposta_id]
 
@@ -75,9 +71,7 @@ def test_marcador_de_atualizacao_e_posterior(lote_dia_1: Path) -> None:
     FR-005 para a versão pendente original."""
     caminho = lote_dia_1 / DIA_1.isoformat() / f"apostas_{DIA_1.isoformat()}.csv"
     with open(caminho, encoding="utf-8", newline="") as fh:
-        original = {
-            linha["aposta_id"]: linha["atualizado_em"] for linha in csv.DictReader(fh)
-        }
+        original = {linha["aposta_id"]: linha["atualizado_em"] for linha in csv.DictReader(fh)}
     for aposta in resolver_pendentes(lote_dia_1, DIA_1, DIA_2, seed=42):
         assert aposta.atualizado_em.strftime("%Y-%m-%d %H:%M:%S") > original[aposta.aposta_id]
 

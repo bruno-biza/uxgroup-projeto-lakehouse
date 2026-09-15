@@ -19,7 +19,10 @@ from tests.conftest import carregar_raw, contar, gerar_lote
 
 pytestmark = pytest.mark.requires_snowflake
 
-DATA = "2026-09-10"
+# Data exclusiva deste arquivo: os testes de integração rodam contra um único
+# warehouse Snowflake compartilhado, então dois arquivos usando a mesma
+# lote_data se contaminam (um regera a data que o outro está inspecionando).
+DATA = "2026-02-01"
 TABELAS = ("raw_apostadores", "raw_eventos", "raw_apostas", "raw_transacoes")
 
 
@@ -59,7 +62,7 @@ def test_regerar_a_mesma_data_substitui_em_vez_de_somar(cliente, tmp_path: Path)
 
 
 def test_outra_data_nao_e_afetada(cliente, tmp_path: Path) -> None:
-    outra = "2026-09-09"
+    outra = "2026-01-31"
     gerar_lote(tmp_path, outra, volume=500)
     carregar_raw(tmp_path, outra)
     antes = contar(cliente, "raw_apostas", f"lote_data = '{outra}'")

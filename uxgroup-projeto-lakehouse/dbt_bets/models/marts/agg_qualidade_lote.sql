@@ -27,13 +27,13 @@
 with recebidos as (
 
     {% for entidade, fonte, _clean in entidades %}
-    select
-        lote_data,
-        '{{ entidade }}' as entidade,
-        count(*) as qtd_recebidos
-    from {{ source('raw', fonte) }}
-    group by lote_data
-    {% if not loop.last %}union all{% endif %}
+        select
+            lote_data,
+            '{{ entidade }}' as entidade,
+            count(*) as qtd_recebidos
+        from {{ source('raw', fonte) }}
+        group by lote_data
+        {% if not loop.last %}union all{% endif %}
     {% endfor %}
 
 ),
@@ -41,13 +41,13 @@ with recebidos as (
 aceitos as (
 
     {% for entidade, _fonte, clean in entidades %}
-    select
-        lote_data,
-        '{{ entidade }}' as entidade,
-        count(*) as qtd_aceitos
-    from {{ ref(clean) }}
-    group by lote_data
-    {% if not loop.last %}union all{% endif %}
+        select
+            lote_data,
+            '{{ entidade }}' as entidade,
+            count(*) as qtd_aceitos
+        from {{ ref(clean) }}
+        group by lote_data
+        {% if not loop.last %}union all{% endif %}
     {% endfor %}
 
 ),

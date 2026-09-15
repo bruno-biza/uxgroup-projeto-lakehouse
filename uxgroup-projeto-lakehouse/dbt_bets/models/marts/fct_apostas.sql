@@ -2,7 +2,8 @@
     config(
         materialized='incremental',
         unique_key='aposta_id',
-        incremental_strategy='merge'
+        incremental_strategy='merge',
+        pre_hook="{{ apagar_orfaos_do_lote('aposta_id', ref('stg_apostas')) }}"
     )
 }}
 
@@ -12,6 +13,15 @@
 -- posterior traz a mesma aposta com status final, a linha e SUBSTITUIDA, nunca
 -- somada - e por isso que `count(*)` e `count(distinct aposta_id)` sao iguais
 -- neste modelo, o que o teste de integracao verifica.
+--
+-- O `pre_hook` estende a substituicao por lote da decisao D1 (RAW) ate aqui:
+-- sem ele, regerar a mesma `lote_data` com conteudo diferente (outro volume,
+-- por exemplo) deixa em `fct_apostas` os `aposta_id` da geracao anterior que
+-- nao sobrevivem na nova - orfaos de `dim_apostadores`/`dim_eventos`, que sao
+-- full-refresh e so refletem a geracao atual. So apaga linhas cuja
+-- `lote_data` ainda e a deste lote: uma aposta cujo status foi atualizado por
+-- um lote POSTERIOR (FR-019b) ja carrega o `lote_data` desse lote posterior e
+-- fica fora do escopo do DELETE.
 --
 -- `esporte` vem desnormalizado de stg_apostas (que ja o carrega do evento) para
 -- que agg_ggr_diario_esporte nao precise de join. E decisao de simplicidade,

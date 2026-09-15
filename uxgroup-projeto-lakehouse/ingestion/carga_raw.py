@@ -68,9 +68,7 @@ def localizar_arquivos(diretorio: Path, lote_data: str) -> dict[str, Path]:
         else:
             faltando.append(caminho.name)
     if faltando:
-        raise LoteIncompletoError(
-            f"lote incompleto em {base}: faltam {', '.join(faltando)}"
-        )
+        raise LoteIncompletoError(f"lote incompleto em {base}: faltam {', '.join(faltando)}")
     return arquivos
 
 

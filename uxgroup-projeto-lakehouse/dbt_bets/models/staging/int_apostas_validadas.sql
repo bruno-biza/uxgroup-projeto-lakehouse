@@ -11,15 +11,15 @@
 with tipado as (
 
     select
-        nullif(trim(aposta_id), '')            as aposta_id,
-        nullif(trim(apostador_id), '')         as apostador_id,
-        nullif(trim(evento_id), '')            as evento_id,
-        try_to_date(data_aposta)               as data_aposta,
-        try_to_number(valor_apostado, 12, 2)   as valor_apostado,
-        try_to_number(odd, 8, 2)               as odd,
-        nullif(trim(status), '')               as status,
-        try_to_number(premio_pago, 12, 2)      as premio_pago,
-        try_to_timestamp_ntz(atualizado_em)    as atualizado_em,
+        nullif(trim(aposta_id), '') as aposta_id,
+        nullif(trim(apostador_id), '') as apostador_id,
+        nullif(trim(evento_id), '') as evento_id,
+        try_to_date(data_aposta) as data_aposta,
+        try_to_number(valor_apostado, 12, 2) as valor_apostado,
+        try_to_number(odd, 8, 2) as odd,
+        nullif(trim(status), '') as status,
+        try_to_number(premio_pago, 12, 2) as premio_pago,
+        try_to_timestamp_ntz(atualizado_em) as atualizado_em,
         arquivo_origem,
         linha_origem,
         lote_data,
@@ -33,7 +33,7 @@ with tipado as (
             'status', status,
             'premio_pago', premio_pago,
             'atualizado_em', atualizado_em
-        )                                      as registro_original
+        ) as registro_original
     from {{ source('raw', 'raw_apostas') }}
 
 ),
@@ -92,29 +92,35 @@ motivado as (
         array_compact(array_construct(
             case when versao > 1 then 'duplicata' end,
             case
-                when aposta_id is null or apostador_id is null or evento_id is null
-                     or data_aposta is null or valor_apostado is null
-                     or odd is null or status is null or premio_pago is null
-                     or atualizado_em is null
-                then 'nulo_obrigatorio'
+                when
+                    aposta_id is null or apostador_id is null or evento_id is null
+                    or data_aposta is null or valor_apostado is null
+                    or odd is null or status is null or premio_pago is null
+                    or atualizado_em is null
+                    then 'nulo_obrigatorio'
             end,
             case when valor_apostado <= 0 then 'valor_nao_positivo' end,
             case when data_aposta > data_evento then 'data_posterior_ao_evento' end,
-            case when apostador_id is not null and not apostador_existe
-                 then 'apostador_inexistente' end,
-            case when evento_id is not null and not evento_existe
-                 then 'evento_inexistente' end,
+            case
+                when apostador_id is not null and not apostador_existe
+                    then 'apostador_inexistente'
+            end,
+            case
+                when evento_id is not null and not evento_existe
+                    then 'evento_inexistente'
+            end,
             -- Premio pago em aposta que nao foi ganha e inconsistencia
             -- estrutural. Premio MAIOR que o valor apostado, ao contrario, e
             -- comportamento normal de odd alta e nao e rejeitado.
             case
                 when status in ('perdida', 'pendente', 'cancelada') and premio_pago <> 0
-                then 'premio_inconsistente'
+                    then 'premio_inconsistente'
             end,
             case
-                when status is not null
-                     and status not in ('ganha', 'perdida', 'pendente', 'cancelada')
-                then 'status_invalido'
+                when
+                    status is not null
+                    and status not in ('ganha', 'perdida', 'pendente', 'cancelada')
+                    then 'status_invalido'
             end
         )) as motivos
     from avaliado

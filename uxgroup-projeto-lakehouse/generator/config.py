@@ -46,8 +46,16 @@ CAMPEONATOS = {
 
 TIMES = {
     "futebol": (
-        "Flamengo", "Palmeiras", "Corinthians", "Sao Paulo", "Gremio",
-        "Internacional", "Atletico-MG", "Fluminense", "Botafogo", "Santos",
+        "Flamengo",
+        "Palmeiras",
+        "Corinthians",
+        "Sao Paulo",
+        "Gremio",
+        "Internacional",
+        "Atletico-MG",
+        "Fluminense",
+        "Botafogo",
+        "Santos",
     ),
     "basquete": ("Franca", "Flamengo Basquete", "Minas", "Pinheiros", "Lakers", "Celtics"),
     "tenis": ("Alcaraz", "Djokovic", "Sinner", "Medvedev", "Zverev", "Rune"),
@@ -56,9 +64,29 @@ TIMES = {
 }
 
 ESTADOS = (
-    "AC", "AL", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MG",
-    "MS", "MT", "PA", "PB", "PE", "PR", "RJ", "RN", "RS", "SC",
-    "SE", "SP", "TO",
+    "AC",
+    "AL",
+    "AM",
+    "BA",
+    "CE",
+    "DF",
+    "ES",
+    "GO",
+    "MA",
+    "MG",
+    "MS",
+    "MT",
+    "PA",
+    "PB",
+    "PE",
+    "PR",
+    "RJ",
+    "RN",
+    "RS",
+    "SC",
+    "SE",
+    "SP",
+    "TO",
 )
 
 STATUS_APOSTA = ("ganha", "perdida", "pendente", "cancelada")

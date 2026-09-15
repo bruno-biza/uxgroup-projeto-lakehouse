@@ -70,7 +70,7 @@ ontem por esporte" — é `SC-006`.
 
 ```bash
 make run DATA=2026-09-10      # segunda vez, mesma data
-pytest tests/integration/test_idempotencia.py -v
+pytest tests/integration/test_idempotencia_pipeline.py -v -m requires_snowflake
 ```
 
 O teste captura contagens e somas de RAW, STAGING e MARTS antes e depois e exige igualdade exata.

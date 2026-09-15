@@ -15,7 +15,8 @@ from tests.conftest import escalar, pipeline_completo
 
 pytestmark = pytest.mark.requires_snowflake
 
-DATA = "2026-09-10"
+# Data exclusiva deste arquivo (ver test_carga_raw_idempotente.py).
+DATA = "2026-02-06"
 
 
 @pytest.fixture
@@ -134,7 +135,7 @@ def test_taxa_alta_de_rejeicao_nao_bloqueia(cliente, tmp_path: Path) -> None:
     Se `pipeline_completo` levantar, a asserção nem é alcançada — o próprio
     sucesso da chamada é metade do teste.
     """
-    outra = "2026-09-12"
+    outra = "2026-02-07"
     pipeline_completo(
         tmp_path,
         outra,
@@ -167,7 +168,7 @@ def test_lote_limpo_aparece_no_resumo(cliente, tmp_path: Path) -> None:
 
     Ausência de linha seria indistinguível de lote não processado.
     """
-    limpa = "2026-09-13"
+    limpa = "2026-02-08"
     pipeline_completo(
         tmp_path,
         limpa,
